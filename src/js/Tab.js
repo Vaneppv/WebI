@@ -5,6 +5,8 @@ export class TabComponent {
         throw new Error(`No se encontró el contenedor: ${containerId}`);
     }
 
+    this.container.classList.add('tab-container');
+
     this.navBar = document.createElement('div');
     this.navBar.classList.add('tab-nav');
 
@@ -36,7 +38,7 @@ export class TabComponent {
     panel.style.display = 'none';
     this.contentArea.appendChild(panel);
 
-    this.tabs[id] = { id, label, button: btn, panel, rows: [] };
+    this.tabs[id] = { id, label, panel, rows: [] };
 
     if (this.activeTabId === null) {
       this.setActiveTab(id);
@@ -46,15 +48,20 @@ export class TabComponent {
   
   setActiveTab(id) {
     const tab = this.tabs[id];
-    if (!tab) {
-      return;
+    if (!tab) return;
+
+    if (this.activeTabId) {
+      const prevTab = this.tabs[this.activeTabId];
+      if (prevTab) {
+        prevTab.panel.style.display = 'none';
+        const prevBtn = this.navBar.querySelector(`[data-tab-id="${this.activeTabId}"]`);
+        if (prevBtn) prevBtn.classList.remove('btn-tab--active');
+      }
     }
-    if (this.activeTabId && this.tabs[this.activeTabId]) {
-      this.tabs[this.activeTabId].panel.style.display = 'none';
-      this.tabs[this.activeTabId].button.classList.remove('btn-tab--active');
-    }
+
     tab.panel.style.display = 'flex';
-    tab.button.classList.add('btn-tab--active');
+    const newBtn = this.navBar.querySelector(`[data-tab-id="${id}"]`);
+    if (newBtn) newBtn.classList.add('btn-tab--active');
     this.activeTabId = id;
   }
 
