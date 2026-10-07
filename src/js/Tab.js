@@ -57,4 +57,52 @@ export class TabComponent {
     tab.button.classList.add('btn-tab--active');
     this.activeTabId = id;
   }
+
+  addRow(tabId, { elements = [], style = {} }) {
+    const tab = this.tabs[tabId];
+    if (!tab) {
+      console.warn(`Tab "${tabId}" not found`); // temporal
+      return this;
+    }
+
+    const row = document.createElement('div');
+    row.classList.add('tab-row');
+    row.style.display = 'flex';
+    Object.assign(row.style, style);
+
+    for (const elConfig of elements) {
+      const el = document.createElement(elConfig.type || 'div');
+      
+      if (elConfig.text) el.textContent = elConfig.text;
+      if (elConfig.html) el.innerHTML = elConfig.html;
+      if (elConfig.class) el.className = elConfig.class;
+      if (elConfig.style) Object.assign(el.style, elConfig.style);
+      if (elConfig.attrs) Object.entries(elConfig.attrs).forEach(([k, v]) => el.setAttribute(k, v));
+      if (elConfig.on) Object.entries(elConfig.on).forEach(([event, handler]) => el.addEventListener(event, handler));
+
+      row.appendChild(el);
+    }
+
+    tab.panel.appendChild(row);
+    tab.rows.push(row);
+    return this;
+  }
+
+  clearRow(tabId) {
+    const tab = this.tabs[tabId];
+    if (!tab) return this;
+    tab.panel.innerHTML = '';
+    tab.rows = [];
+    return this;
+  }
+
+  deleteRow(tabId, index) {
+    const tab = this.tabs[tabId];
+    if (!tab || index < 0 || index >= tab.rows.length) return this;
+    tab.rows[index].remove();
+    tab.rows.splice(index, 1);
+    return this;
+  }
+
 }
+
