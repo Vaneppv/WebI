@@ -6,7 +6,9 @@ export class CustomTabs extends HTMLElement {
     super().attachShadow({ mode: 'open' }).innerHTML = `
       <style>
         :host { display: block; }
-        .root.off { display: none; }
+        .root { transition: opacity .25s, transform .25s, display .25s allow-discrete; }
+        .root.off { display: none; opacity: 0; transform: scale(.97); }
+        @starting-style { .root { opacity: 0; transform: scale(.97); } }
         .header { position: relative; display: flex; overflow-x: auto; scrollbar-width: none;
                   scroll-snap-type: x mandatory; border-bottom: 1px solid #e5e7eb; }
         .bar { position: absolute; left: 0; bottom: 0; width: 1px; height: 3px; transform-origin: left;
@@ -32,7 +34,11 @@ export class CustomTabs extends HTMLElement {
       const d = { ArrowRight: 1, ArrowLeft: -1 }[e.key], n = this.tabCount;
       if (d) { this.selectTab((this.active + d + n) % n); this.tabs[this.active].focus(); }
     });
+    this.resizer = new ResizeObserver(() => this.#render(false));
   }
+
+  connectedCallback() { this.resizer.observe(this); }
+  disconnectedCallback() { this.resizer.disconnect(); }
 
   attributeChangedCallback(name) {
     if (name === 'active') return this.#render();
