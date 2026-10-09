@@ -19,6 +19,10 @@ export class CustomTabs extends HTMLElement {
     this.shadowRoot.addEventListener('slotchange', () => this.#render());
     this.header.addEventListener('click', (e) =>
       this.selectTab(this.tabs.indexOf(e.target.closest('[slot=tab]'))));
+    this.header.addEventListener('keydown', (e) => {
+      const d = { ArrowRight: 1, ArrowLeft: -1 }[e.key], n = this.tabCount;
+      if (d) { this.selectTab((this.active + d + n) % n); this.tabs[this.active].focus(); }
+    });
   }
 
   attributeChangedCallback(name) {
