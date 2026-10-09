@@ -7,14 +7,22 @@ export class CustomTabs extends HTMLElement {
       <style>
         :host { display: block; }
         .root.off { display: none; }
+        .header { position: relative; display: flex; overflow-x: auto; scrollbar-width: none;
+                  scroll-snap-type: x mandatory; border-bottom: 1px solid #e5e7eb; }
+        .bar { position: absolute; left: 0; bottom: 0; width: 1px; height: 3px; transform-origin: left;
+               background: var(--tabs-accent, #4f46e5); transition: transform .3s; }
+        ::slotted([slot=tab]) { flex: none; padding: .75rem 1.25rem; cursor: pointer;
+                                color: #6b7280; scroll-snap-align: center; }
+        ::slotted([aria-selected=true]) { color: var(--tabs-accent, #4f46e5); }
+        .panels { position: relative; overflow-x: clip; }
+        ::slotted([slot=panel]) { padding: 1.25rem .25rem; }
       </style>
       <div class="root">
-        <div class="header"><slot name="tab"></slot></div>
+        <div class="header"><slot name="tab"></slot><i class="bar"></i></div>
         <div class="panels"><slot name="panel"></slot></div>
       </div>`;
     const $ = (s) => this.shadowRoot.querySelector(s);
-    this.root = $('.root');
-    this.header = $('.header');
+    this.root = $('.root'); this.header = $('.header'); this.bar = $('.bar');
 
     this.shadowRoot.addEventListener('slotchange', () => this.#render());
     this.header.addEventListener('click', (e) =>
