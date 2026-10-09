@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>custom-tabs</title>
+<style>
+  body{font-family:system-ui,sans-serif;max-width:720px;margin:2rem auto;padding:0 1rem;color:#1f2937}
+  .bar{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0}
+  button{padding:.5rem .9rem;border:1px solid #d1d5db;border-radius:8px;background:#fff;cursor:pointer}
+  button:hover{background:#f3f4f6}
+  #log{font:12px/1.5 ui-monospace,monospace;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:.75rem;min-height:3rem;margin-top:1rem}
+  custom-tabs{border:1px solid #e5e7eb;border-radius:12px;padding:0 1rem}
+</style>
+</head>
+<body>
+  <h1>custom-tabs</h1>
+
+  <div class="bar">
+    <button id="b-sel">Ir al tab 3</button>
+    <button id="b-add">Añadir tab</button>
+    <button id="b-del">Eliminar último</button>
+    <button id="b-toggle">Mostrar / ocultar</button>
+  </div>
+
+  <custom-tabs id="t" active="0" style="--tabs-accent:#0ea5e9">
+    <div slot="tab">Inicio</div>
+    <div slot="panel"><h3>Inicio</h3><p>Contenido declarado en HTML con slots.</p></div>
+
+    <div slot="tab">Perfil</div>
+    <div slot="panel"><h3>Perfil</h3><p>Las animaciones dependen de la dirección del cambio.</p></div>
+
+    <div slot="tab">Ajustes</div>
+    <div slot="panel"><h3>Ajustes</h3><p>Usa ← → para navegar con teclado.</p></div>
+
+    <div slot="tab">Notificaciones</div>
+    <div slot="panel"><h3>Notificaciones</h3><p>Reduce el ancho de la ventana: la barra se vuelve deslizable.</p></div>
+  </custom-tabs>
+
+  <div id="log">Eventos…</div>
+
+  <script type="module">
+    import './js/custom-tabs.js';
+
+    const t = document.getElementById('t'), log = document.getElementById('log');
+    const write = (m) => { log.innerHTML = m + '<br>' + (log.innerHTML.startsWith('Eventos') ? '' : log.innerHTML); };
+    t.addEventListener('tab-change', e => write(`tab-change → ${e.detail.previous} ➜ ${e.detail.index}`));
+    t.addEventListener('visibility-change', e => write(`visibility-change → ${e.detail.visible}`));
+
+    document.getElementById('b-sel').onclick = () => t.selectTab(2);
+    document.getElementById('b-add').onclick = () => {
+      const n = t.tabCount + 1;
+      t.addTab({ title: 'Tab ' + n, content: `<p>Tab creado dinámicamente (#${n}).</p>`, select: true });
+    };
+    document.getElementById('b-del').onclick = () => t.removeTab(t.tabCount - 1);
+    document.getElementById('b-toggle').onclick = () => { t.visible = !t.visible; };
+  </script>
+</body>
+</html>
