@@ -1,31 +1,54 @@
 export class CustomTabs extends HTMLElement {
-  static observedAttributes = ['active'];
+  static observedAttributes = ['active', 'visible'];
 
   constructor() {
     super().attachShadow({ mode: 'open' }).innerHTML = `
-      <style>:host { display: block; }</style>
-      <div class="header"><slot name="tab"></slot></div>
-      <div class="panels"><slot name="panel"></slot></div>
-    `;
-    this.shadowRoot.addEventListener('slotchange', () => this.#sync());
+      <style>
+        :host { display: block; }
+        .root.off { display: none; }
+      </style>
+      <div class="root">
+        <div class="header"><slot name="tab"></slot></div>
+        <div class="panels"><slot name="panel"></slot></div>
+      </div>`;
+    const $ = (s) => this.shadowRoot.querySelector(s);
+    this.root = $('.root');
+    this.header = $('.header');
+
+    this.shadowRoot.addEventListener('slotchange', () => this.#render());
+    this.header.addEventListener('click', (e) =>
+      this.selectTab(this.tabs.indexOf(e.target.closest('[slot=tab]'))));
   }
 
-  connectedCallback() {
-    this.#sync();
-  }
-
-  attributeChangedCallback() {
-    this.#sync();
+  attributeChangedCallback(name) {
+    if (name === 'active') return this.#render();
+    this.root.classList.toggle('off', !this.visible);
   }
 
   get tabs() { return [...this.querySelectorAll(':scope > [slot=tab]')]; }
   get panels() { return [...this.querySelectorAll(':scope > [slot=panel]')]; }
+  get tabCount() { return this.tabs.length; }
+  get active() { return +this.getAttribute('active') || 0; }
+  set active(i) { this.selectTab(i); }
+  get visible() { return this.getAttribute('visible') !== 'false'; }
+  set visible(v) { this.setAttribute('visible', !!v); }
 
-  #sync() {
+  selectTab(i) { if (i >= 0 && i < this.tabCount) this.setAttribute('active', i); }
+  show() { this.visible = true; }
+  hide() { this.visible = false; }
+
+  #render() {
     const { tabs, panels } = this;
-    const active = +this.getAttribute('active') || 0;
-    tabs.forEach((t, i) => t.setAttribute('aria-selected', i === active));
-    panels.forEach((p, i) => (p.hidden = i !== active));
+    if (!tabs.length) return;
+    const i = Math.min(this.active, tabs.length - 1);
+    if (i !== this.active) return this.setAttribute('active', i); // clamp, re-renders
+
+    tabs.forEach((t, n) => {
+      t.setAttribute('role', 'tab');
+      t.setAttribute('aria-selected', n === i);
+      t.tabIndex = n === i ? 0 : -1;
+    });
+    panels.forEach((p, n) => (p.hidden = n !== i));
   }
 }
 
