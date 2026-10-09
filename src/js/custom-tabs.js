@@ -39,6 +39,18 @@ export class CustomTabs extends HTMLElement {
   show() { this.visible = true; }
   hide() { this.visible = false; }
 
+  addTab({ title = '', content = '', select = false } = {}) {
+    const tab = Object.assign(document.createElement('div'), { slot: 'tab' });
+    const panel = Object.assign(document.createElement('div'), { slot: 'panel' });
+    tab.append(title);
+    typeof content === 'string' ? (panel.innerHTML = content) : panel.append(content);
+    this.append(tab, panel);
+    if (select) this.selectTab(this.tabCount - 1);
+    return this.tabCount - 1;
+  }
+
+  removeTab(i) { this.tabs[i]?.remove(); this.panels[i]?.remove(); }
+
   #emit(name, detail) {
     this.dispatchEvent(new CustomEvent(name, { detail, bubbles: true, composed: true }));
   }
