@@ -1,5 +1,6 @@
 export class CustomTabs extends HTMLElement {
   static observedAttributes = ['active', 'visible'];
+  #last;
 
   constructor() {
     super().attachShadow({ mode: 'open' }).innerHTML = `
@@ -23,6 +24,7 @@ export class CustomTabs extends HTMLElement {
   attributeChangedCallback(name) {
     if (name === 'active') return this.#render();
     this.root.classList.toggle('off', !this.visible);
+    this.#emit('visibility-change', { visible: this.visible });
   }
 
   get tabs() { return [...this.querySelectorAll(':scope > [slot=tab]')]; }
@@ -37,6 +39,10 @@ export class CustomTabs extends HTMLElement {
   show() { this.visible = true; }
   hide() { this.visible = false; }
 
+  #emit(name, detail) {
+    this.dispatchEvent(new CustomEvent(name, { detail, bubbles: true, composed: true }));
+  }
+
   #render() {
     const { tabs, panels } = this;
     if (!tabs.length) return;
@@ -49,6 +55,10 @@ export class CustomTabs extends HTMLElement {
       t.tabIndex = n === i ? 0 : -1;
     });
     panels.forEach((p, n) => (p.hidden = n !== i));
+
+    if (this.#last !== undefined && this.#last !== i)
+      this.#emit('tab-change', { index: i, previous: this.#last });
+    this.#last = i;
   }
 }
 
