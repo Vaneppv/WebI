@@ -68,7 +68,7 @@ export class CustomTabs extends HTMLElement {
   }
 
   #render() {
-    const { tabs, panels } = this;
+    const { tabs, panels, header: h } = this;
     if (!tabs.length) return;
     const i = Math.min(this.active, tabs.length - 1);
     if (i !== this.active) return this.setAttribute('active', i); // clamp, re-renders
@@ -79,6 +79,11 @@ export class CustomTabs extends HTMLElement {
       t.tabIndex = n === i ? 0 : -1;
     });
     panels.forEach((p, n) => (p.hidden = n !== i));
+
+    const r = tabs[i].getBoundingClientRect(), hr = h.getBoundingClientRect();
+    const x = r.left - hr.left + h.scrollLeft;
+    this.bar.style.transform = `translateX(${x}px) scaleX(${r.width})`;
+    h.scrollTo({ left: x - (hr.width - r.width) / 2, behavior: 'smooth' });
 
     if (this.#last !== undefined && this.#last !== i)
       this.#emit('tab-change', { index: i, previous: this.#last });
