@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tabs — 2b-db</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; color: #1f2937; }
+  h1 { font-size: 1.4rem; }
+  h2 { font-size: .95rem; color: #6b7280; margin: 2rem 0 .5rem; }
+  .bar { display: flex; flex-wrap: wrap; gap: .5rem; margin: .75rem 0; }
+  button { padding: .45rem .8rem; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; cursor: pointer; font: inherit; }
+  button:hover { background: #f3f4f6; }
+  #log { font: 12px/1.5 ui-monospace, monospace; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: .75rem; min-height: 2.5rem; white-space: pre-wrap; }
+  #app { border: 1px solid #e5e7eb; border-radius: 12px; padding: 0 1rem; }
+  .hint { color: #6b7280; font-size: .85rem; }
+</style>
+</head>
+<body>
+  <h1>Tabs — branch <code>2b-db</code></h1>
+  <p class="hint">Serví la carpeta por HTTP antes de abrir esto: los ES modules no cargan desde <code>file://</code>. Ej: <code>npx serve src</code>.</p>
+
+  <h2>Componente</h2>
+  <div id="app"></div>
+
+  <h2>Acciones</h2>
+  <div class="bar">
+    <button id="add">Agregar fila en la activa</button>
+    <button id="del">Borrar la primera de la activa</button>
+    <button id="clear">Vaciar la activa</button>
+    <button id="toggle">Mostrar / ocultar</button>
+    <button id="spam">Clics rápidos (prueba la guarda de animación)</button>
+  </div>
+
+  <h2>Eventos</h2>
+  <div id="log">(sin eventos)</div>
+
+  <script type="module">
+    import { Tabs } from './js/Tabs.js';
+
+    const tabs = new Tabs(document.getElementById('app'), { accent: '#0ea5e9' });
+
+    // El HTML queda vacío: todo el contenido entra por la API.
+    tabs
+      .addOption({ id: 'estudiantes', label: 'Estudiantes' })
+      .addOption({ id: 'aulas', label: 'Aulas' })
+      .addOption({ id: 'docentes', label: 'Docentes' })
+      .addOption({ id: 'vacio', label: 'Vacío' });
+
+    const alumnos = [
+      { nombre: 'Ana Torres', correo: 'ana@email.com', curso: 'Resina epóxica' },
+      { nombre: 'Bruno Díaz', correo: 'bruno@email.com', curso: 'Manejo de tuberías' },
+      { nombre: 'Carla Ruiz', correo: 'carla@email.com', curso: 'Soldadura' },
+    ];
+
+    alumnos.forEach((alumno, i) => {
+      tabs.addRow('estudiantes', {
+        class: i === 1 ? 'tw-row--muted' : undefined,
+        elements: [
+          { type: 'span', text: alumno.nombre, class: 'nombre', style: { fontWeight: 600, minWidth: '9rem' } },
+          { type: 'span', text: alumno.correo, style: { color: '#6b7280' } },
+          { type: 'span', text: alumno.curso, attrs: { 'data-curso': alumno.curso } },
+        ],
+      });
+    });
+
+    // children anidado: sin innerHTML, igual soporta markup complejo.
+    tabs.addRow('estudiantes', {
+      elements: [
+        {
+          type: 'details',
+          children: [
+            { type: 'summary', text: 'Ver notas' },
+            {
+              type: 'ul',
+              children: [
+                { type: 'li', text: 'Bruno Díaz debe un parcial.' },
+                { type: 'li', text: 'Ana Torres aprobó con 9.' },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    tabs
+      .addRow('aulas', {
+        elements: [
+          { type: 'span', text: 'Aula 101', style: { fontWeight: 600, minWidth: '9rem' } },
+          { type: 'span', text: 'Capacidad: 30' },
+        ],
+      })
+      .addRow('aulas', {
+        elements: [
+          { type: 'span', text: 'Aula 202', style: { fontWeight: 600, minWidth: '9rem' } },
+          { type: 'span', text: 'Capacidad: 18' },
+        ],
+      })
+      .addRow('docentes', {
+        elements: [
+          { type: 'span', text: 'Ing. Pérez', style: { fontWeight: 600 } },
+          {
+            type: 'button',
+            text: 'Quitar de la lista',
+            attrs: { type: 'button' },
+            on: { click: () => tabs.deleteRow('docentes', 0) },
+          },
+        ],
+      });
+
+    // 'vacio' se deja a proposito: muestra el estado sin filas.
+
+    const log = document.getElementById('log');
+    let lines = 0;
+    const write = (msg) => {
+      log.textContent = `${msg}\n${log.textContent}`.split('\n').slice(0, 8).join('\n');
+      if (++lines > 40) lines = 0;
+    };
+
+    tabs.on('tab-change', (e) => write(`tab-change → ${e.detail.previous} ➜ ${e.detail.index}`));
+    tabs.on('visibility-change', (e) => write(`visibility-change → ${e.detail.visible}`));
+
+    const activeId = () => tabs.activeId;
+
+    document.getElementById('add').onclick = () => {
+      tabs.addRow(activeId(), {
+        elements: [{ type: 'span', text: `Fila nueva en ${activeId()}` }],
+      });
+    };
+
+    document.getElementById('del').onclick = () => tabs.deleteRow(activeId(), 0);
+    document.getElementById('clear').onclick = () => tabs.clearRow(activeId());
+
+    document.getElementById('toggle').onclick = () => {
+      const el = document.querySelector('custom-tabs');
+      el.visible = !el.visible;
+    };
+
+    document.getElementById('spam').onclick = () => {
+      const ids = tabs.tabIds;
+      let i = 0;
+      const id = setInterval(() => {
+        tabs.selectTab(ids[i++ % ids.length]);
+        if (i >= 10) clearInterval(id);
+      }, 60);
+    };
+  </script>
+</body>
+</html>

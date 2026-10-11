@@ -318,7 +318,7 @@
     _scrollToTab(smooth) {
       const t = this._tabs[this._current], h = this._header;
       if (!t || !this._shown) return;
-      h.scrollTo({
+      h.scrollTo?.({
         left: this._tabLeft(t) - (h.clientWidth - t.offsetWidth) / 2,
         behavior: smooth ? 'smooth' : 'auto',
       });
