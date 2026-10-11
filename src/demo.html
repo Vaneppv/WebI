@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Componente de Tabs</title>
+<style>
+  :root { --accent: #0ea5e9; --border: #e5e7eb; --muted: #6b7280; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    max-width: 720px; margin: 3rem auto; padding: 0 1rem;
+    color: #1f2937; line-height: 1.5;
+  }
+  h1 { font-size: 1.35rem; margin: 0 0 .25rem; }
+  h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 2rem 0 .6rem; }
+  p.sub { color: var(--muted); margin: 0 0 2rem; font-size: .9rem; }
+
+  #app { border: 1px solid var(--border); border-radius: 12px; padding: 0 1rem; }
+
+  .bar { display: flex; flex-wrap: wrap; gap: .5rem; }
+  button {
+    padding: .45rem .8rem; border: 1px solid #d1d5db; border-radius: 8px;
+    background: #fff; cursor: pointer; font: inherit; font-size: .875rem;
+  }
+  button:hover { background: #f3f4f6; }
+
+  #log {
+    font: 12px/1.6 ui-monospace, monospace; background: #f9fafb;
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: .75rem; min-height: 3rem; color: var(--muted);
+    white-space: pre-wrap;
+  }
+  .hint { color: var(--muted); font-size: .8rem; margin-top: .5rem; }
+</style>
+</head>
+<body>
+
+  <h1>Componente de Tabs</h1>
+  <p class="sub">Dos piezas compuestas por una fachada: el chrome maneja las pestañas, el contenido maneja las filas.</p>
+
+  <div id="app"></div>
+
+  <h2>Acciones</h2>
+  <div class="bar">
+    <button data-act="add">Agregar fila</button>
+    <button data-act="del">Borrar la primera</button>
+    <button data-act="clear">Vaciar la pestaña</button>
+    <button data-act="toggle">Mostrar / ocultar</button>
+    <button data-act="spam">Clics rápidos</button>
+  </div>
+  <p class="hint">Las acciones se aplican a la pestaña activa. Para el teclado: <code>←</code> <code>→</code> <code>Home</code> <code>End</code>.</p>
+
+  <h2>Eventos</h2>
+  <div id="log">(sin eventos)</div>
+
+  <script type="module">
+    import { Tabs } from './js/Tabs.js';
+
+    const tabs = new Tabs(document.getElementById('app'), { accent: '#0ea5e9' });
+
+    tabs
+      .addOption({ id: 'estudiantes', label: 'Estudiantes' })
+      .addOption({ id: 'aulas', label: 'Aulas' })
+      .addOption({ id: 'docentes', label: 'Docentes' })
+      .addOption({ id: 'vacio', label: 'Vacío' });
+
+    const nombre = { fontWeight: 600, minWidth: '9rem' };
+    const tenue = { color: '#6b7280' };
+
+    // Filas generadas desde datos: el caso de uso habitual.
+    [
+      { nombre: 'Ana Torres', correo: 'ana@email.com', curso: 'Resina epóxica' },
+      { nombre: 'Bruno Díaz', correo: 'bruno@email.com', curso: 'Manejo de tuberías' },
+      { nombre: 'Carla Ruiz', correo: 'carla@email.com', curso: 'Soldadura' },
+    ].forEach((alumno, i) => {
+      tabs.addRow('estudiantes', {
+        class: i === 1 ? 'tw-row--muted' : undefined,
+        elements: [
+          { type: 'span', text: alumno.nombre, style: nombre },
+          { type: 'span', text: alumno.correo, style: tenue },
+          { type: 'span', text: alumno.curso },
+        ],
+      });
+    });
+
+    // children anidado: markup complejo sin innerHTML.
+    tabs.addRow('estudiantes', {
+      elements: [{
+        type: 'details',
+        children: [
+          { type: 'summary', text: 'Ver notas' },
+          {
+            type: 'ul',
+            children: [
+              { type: 'li', text: 'Ana Torres aprobó con 9.' },
+              { type: 'li', text: 'Bruno Díaz debe un parcial.' },
+            ],
+          },
+        ],
+      }],
+    });
+
+    tabs
+      .addRow('aulas', {
+        elements: [
+          { type: 'span', text: 'Aula 101', style: nombre },
+          { type: 'span', text: 'Capacidad: 30', style: tenue },
+        ],
+      })
+      .addRow('aulas', {
+        elements: [
+          { type: 'span', text: 'Aula 202', style: nombre },
+          { type: 'span', text: 'Capacidad: 18', style: tenue },
+        ],
+      });
+
+    tabs.addRow('docentes', {
+      elements: [
+        { type: 'span', text: 'Ing. Pérez', style: nombre },
+        {
+          type: 'button',
+          text: 'Quitar de la lista',
+          attrs: { type: 'button' },
+          on: { click: () => tabs.deleteRow('docentes', 0) },
+        },
+      ],
+    });
+
+    // 'vacio' se deja a propósito: muestra el estado sin filas.
+
+    const log = document.getElementById('log');
+    let lineas = [];
+
+    const write = (msg) => {
+      lineas.unshift(msg);
+      lineas = lineas.slice(0, 8);
+      log.textContent = lineas.join('\n');
+    };
+
+    tabs.on('tab-change', (e) => write(`tab-change → ${e.detail.previous} ➜ ${e.detail.index}`));
+    tabs.on('visibility-change', (e) => write(`visibility-change → ${e.detail.visible}`));
+
+    const activa = () => tabs.activeId;
+    let visible = true;
+
+    document.querySelector('.bar').addEventListener('click', (e) => {
+      switch (e.target.dataset.act) {
+        case 'add':
+          tabs.addRow(activa(), { elements: [{ type: 'span', text: `Fila nueva en ${activa()}` }] });
+          break;
+        case 'del':
+          tabs.deleteRow(activa(), 0);
+          break;
+        case 'clear':
+          tabs.clearRow(activa());
+          break;
+        case 'toggle':
+          visible = !visible;
+          visible ? tabs.show() : tabs.hide();
+          break;
+        case 'spam': {
+          // Cambiar rápido sin terminar la animación: prueba la guarda.
+          const ids = tabs.tabIds;
+          let i = 0;
+          const timer = setInterval(() => {
+            tabs.selectTab(ids[i++ % ids.length]);
+            if (i >= 10) clearInterval(timer);
+          }, 60);
+          break;
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>

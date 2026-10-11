@@ -6,7 +6,7 @@ y cada una se puede abrir por separado:
 | Versión | Dónde | Cuándo usarla |
 |---|---|---|
 | **Original** | `src/index.html` + `src/js/Tab.js` + `src/js/main.js` | Para comparar. Cumple la norma 1 del brief, pero mezcla navegación y contenido en un mismo archivo. |
-| **`2b-db`** | `src/2b-demo.html` + `src/js/Tabs.js` | La versión nueva. Separa las dos responsabilidades y las compone. |
+| **`2b-db`** | `src/demo.html` + `src/js/Tabs.js` | La versión nueva. Separa las dos responsabilidades y las compone. |
 
 La sección [El brief original](#el-brief-original) al final está **intacta**: es
 el enunciado de la tarea. Todo lo de arriba es la implementación.
@@ -39,7 +39,7 @@ en blanco. Hay que servirlo por HTTP.
 npx serve src
 ```
 
-Después abrí <http://localhost:3000/2b-demo.html> para la versión nueva, o
+Después abrí <http://localhost:3000/demo.html> para la versión nueva, o
 <http://localhost:3000/index.html> para la original.
 
 No hay build, ni bundler, ni `package.json`. Son módulos ES nativos: copiás la
@@ -308,7 +308,7 @@ Estas correcciones son el argumento de por qué la versión nueva existe:
 
 ```
 src/
-├── 2b-demo.html          Demo de la versión nueva
+├── demo.html          Demo de la versión nueva
 ├── index.html            Demo de la versión original
 ├── custom-tabs-demo.html Demo de custom-tabs por separado
 ├── css/styles.css        Estilos de la versión original
