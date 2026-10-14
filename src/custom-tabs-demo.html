@@ -5,55 +5,208 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>custom-tabs</title>
 <style>
-  body{font-family:system-ui,sans-serif;max-width:720px;margin:2rem auto;padding:0 1rem;color:#1f2937}
-  .bar{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0}
-  button{padding:.5rem .9rem;border:1px solid #d1d5db;border-radius:8px;background:#fff;cursor:pointer}
-  button:hover{background:#f3f4f6}
-  #log{font:12px/1.5 ui-monospace,monospace;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:.75rem;min-height:3rem;margin-top:1rem}
-  custom-tabs{border:1px solid #e5e7eb;border-radius:12px;padding:0 1rem}
+  :root { --accent: #0ea5e9; --border: #e5e7eb; --muted: #6b7280; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, sans-serif; max-width: 760px; margin: 3rem auto;
+    padding: 0 1rem; color: #1f2937; line-height: 1.5;
+  }
+  h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+  h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em;
+       color: var(--muted); margin: 2.25rem 0 .6rem; }
+  p.sub { color: var(--muted); margin: 0 0 1.5rem; font-size: .9rem; }
+
+  .box { border: 1px solid var(--border); border-radius: 12px; padding: 0 1rem; }
+  #demo-panel { border: 1px dashed var(--border); border-radius: 12px; padding: .5rem 1rem; }
+
+  .bar { display: flex; flex-wrap: wrap; gap: .5rem; margin: .75rem 0; }
+  button {
+    padding: .45rem .8rem; border: 1px solid #d1d5db; border-radius: 8px;
+    background: #fff; cursor: pointer; font: inherit; font-size: .875rem;
+  }
+  button:hover { background: #f3f4f6; }
+
+  #log {
+    font: 12px/1.6 ui-monospace, monospace; background: #f9fafb;
+    border: 1px solid var(--border); border-radius: 8px; padding: .75rem;
+    min-height: 3rem; color: var(--muted); white-space: pre-wrap;
+  }
+  code { background: #f3f4f6; padding: .05rem .3rem; border-radius: 4px; font-size: .85em; }
+
+  /* Fallback de filas en HTML plano (solo para la pestaña "Perfil") */
+  .custom-tabs-row { display: flex; gap: 12px; align-items: center; padding: 10px 4px; }
+  .custom-tabs-row + .custom-tabs-row { border-top: 1px solid var(--border); }
 </style>
 </head>
 <body>
+
   <h1>custom-tabs</h1>
+  <p class="sub">
+    Web Component desacoplado. La demo muestra HTML declarativo, JS, y el
+    <code>&lt;custom-panel&gt;</code> por separado.
+  </p>
 
-  <div class="bar">
-    <button id="b-sel">Ir al tab 3</button>
-    <button id="b-add">Añadir tab</button>
-    <button id="b-del">Eliminar último</button>
-    <button id="b-toggle">Mostrar / ocultar</button>
-  </div>
+  <h2>1 · Declarado en HTML (con y sin custom-panel)</h2>
+  <custom-tabs id="demo-html" class="box" active="0" style="--tabs-accent:#0ea5e9">
+    <div slot="tab" data-tab-id="inicio">Inicio</div>
+    <custom-panel slot="panel">
+      <h3>Inicio</h3>
+      <p>Este panel es un <code>&lt;custom-panel&gt;</code>: acepta filas por JS.</p>
+    </custom-panel>
 
-  <custom-tabs id="t" active="0" style="--tabs-accent:#0ea5e9">
-    <div slot="tab">Inicio</div>
-    <div slot="panel"><h3>Inicio</h3><p>Contenido declarado en HTML con slots.</p></div>
+    <div slot="tab" data-tab-id="perfil">Perfil</div>
+    <div slot="panel">
+      <h3>Perfil</h3>
+      <p>Panel HTML plano (sin <code>custom-panel</code>): el componente hace el fallback.</p>
+    </div>
 
-    <div slot="tab">Perfil</div>
-    <div slot="panel"><h3>Perfil</h3><p>Las animaciones dependen de la dirección del cambio.</p></div>
-
-    <div slot="tab">Ajustes</div>
-    <div slot="panel"><h3>Ajustes</h3><p>Usa ← → para navegar con teclado.</p></div>
-
-    <div slot="tab">Notificaciones</div>
-    <div slot="panel"><h3>Notificaciones</h3><p>Reduce el ancho de la ventana: la barra se vuelve deslizable.</p></div>
+    <div slot="tab" data-tab-id="ajustes">Ajustes</div>
+    <custom-panel slot="panel">
+      <p>Usá ← → Home End para navegar con teclado.</p>
+    </custom-panel>
   </custom-tabs>
 
-  <div id="log">Eventos…</div>
+  <h2>2 · Creado por JavaScript</h2>
+  <custom-tabs id="demo-js" class="box" active="0" style="--tabs-accent:#7b06a9"></custom-tabs>
+  <div class="bar">
+    <button data-js="add-row">Añadir fila</button>
+    <button data-js="del-row">Eliminar fila</button>
+    <button data-js="clear">Vaciar pestaña</button>
+    <button data-js="add-tab">Añadir pestaña</button>
+    <button data-js="del-tab">Eliminar pestaña</button>
+    <button data-js="toggle">Mostrar / ocultar</button>
+    <button data-js="spam">Clics rápidos</button>
+  </div>
+
+  <h2>3 · &lt;custom-panel&gt; standalone</h2>
+  <custom-panel id="demo-panel">
+    <h3>Panel suelto</h3>
+    <p>Funciona sin <code>&lt;custom-tabs&gt;</code>.</p>
+  </custom-panel>
+  <div class="bar">
+    <button data-panel="add-row">Añadir fila</button>
+    <button data-panel="show">show()</button>
+    <button data-panel="hide">hide()</button>
+  </div>
+
+  <h2>Eventos</h2>
+  <div id="log">(sin eventos)</div>
 
   <script type="module">
+    import './js/custom-panel.js';
     import './js/custom-tabs.js';
 
-    const t = document.getElementById('t'), log = document.getElementById('log');
-    const write = (m) => { log.innerHTML = m + '<br>' + (log.innerHTML.startsWith('Eventos') ? '' : log.innerHTML); };
-    t.addEventListener('tab-change', e => write(`tab-change → ${e.detail.previous} ➜ ${e.detail.index}`));
-    t.addEventListener('visibility-change', e => write(`visibility-change → ${e.detail.visible}`));
-
-    document.getElementById('b-sel').onclick = () => t.selectTab(2);
-    document.getElementById('b-add').onclick = () => {
-      const n = t.tabCount + 1;
-      t.addTab({ title: 'Tab ' + n, content: `<p>Tab creado dinámicamente (#${n}).</p>`, select: true });
+    const log = document.getElementById('log');
+    let lines = [];
+    const write = (msg) => {
+      lines.unshift(msg);
+      lines = lines.slice(0, 8);
+      log.textContent = lines.join('\n');
     };
-    document.getElementById('b-del').onclick = () => t.removeTab(t.tabCount - 1);
-    document.getElementById('b-toggle').onclick = () => { t.visible = !t.visible; };
+
+    /* ---- 1 · HTML declarativo ---- */
+    const html = document.getElementById('demo-html');
+    // Le agregamos filas JS al primer panel (el <custom-panel> de Inicio).
+    html.addRow('inicio', { elements: [{ type: 'span', text: 'Fila agregada por JS sobre un panel declarado en HTML.' }] });
+
+    /* ---- 2 · Por JavaScript ---- */
+    const tabs = document.getElementById('demo-js');
+
+    tabs.addTab({ id: 'estudiantes', title: 'Estudiantes', select: true });
+    tabs.addTab({ id: 'aulas', title: 'Aulas' });
+    tabs.addTab({ id: 'docentes', title: 'Docentes' });
+
+    const nombre = { fontWeight: 600, minWidth: '9rem' };
+    const tenue = { color: '#6b7280' };
+
+    [
+      { nombre: 'Ana Torres', correo: 'ana@email.com', curso: 'Resina epóxica' },
+      { nombre: 'Bruno Díaz', correo: 'bruno@email.com', curso: 'Manejo de tuberías' },
+      { nombre: 'Carla Ruiz', correo: 'carla@email.com', curso: 'Soldadura' },
+    ].forEach((alumno) => {
+      tabs.addRow('estudiantes', {
+        elements: [
+          { type: 'span', text: alumno.nombre, style: nombre },
+          { type: 'span', text: alumno.correo, style: tenue },
+          { type: 'span', text: alumno.curso },
+        ],
+      });
+    });
+
+    tabs.addRow(1, { elements: [{ type: 'span', text: 'Aula 101', style: nombre }, { type: 'span', text: 'Capacidad: 30', style: tenue }] });
+    tabs.addRow('aulas', { elements: [{ type: 'span', text: 'Aula 202', style: nombre }, { type: 'span', text: 'Capacidad: 18', style: tenue }] });
+
+    tabs.addRow('docentes', {
+      elements: [
+        { type: 'span', text: 'Ing. Pérez', style: nombre },
+        { type: 'button', text: 'Quitar de la lista', attrs: { type: 'button' }, on: { click: () => tabs.deleteRow('docentes', 0) } },
+      ],
+    });
+
+    const buttons = document.querySelector('[data-js]').closest('.bar');
+    buttons.addEventListener('click', (e) => {
+      const act = e.target.dataset.js;
+      if (!act) return;
+      switch (act) {
+        case 'add-row':
+          tabs.addRow(tabs.active, { elements: [{ type: 'span', text: `Fila nueva en "${tabs.activeId ?? tabs.active}"` }] });
+          break;
+        case 'del-row':
+          tabs.deleteRow(tabs.active, 0);
+          break;
+        case 'clear':
+          tabs.clearRow(tabs.active);
+          break;
+        case 'add-tab': {
+          const n = tabs.tabCount + 1;
+          tabs.addTab({ id: 'nuevo-' + n, title: 'Tab ' + n, content: `<p>Pestaña creada dinámicamente (#${n}).</p>`, select: true });
+          break;
+        }
+        case 'del-tab':
+          tabs.removeTab(tabs.active);
+          break;
+        case 'toggle':
+          tabs.visible = !tabs.visible;
+          break;
+        case 'spam': {
+          const count = tabs.tabCount;
+          let i = 0;
+          const timer = setInterval(() => {
+            tabs.selectTab(i++ % count);
+            if (i >= 10) clearInterval(timer);
+          }, 60);
+          break;
+        }
+      }
+    });
+
+    /* ---- 3 · Panel standalone ---- */
+    const panel = document.getElementById('demo-panel');
+    let panelRows = 0;
+    document.querySelector('[data-panel]').closest('.bar').addEventListener('click', (e) => {
+      switch (e.target.dataset.panel) {
+        case 'add-row':
+          panel.addRow({ elements: [{ type: 'span', text: `Fila standalone #${++panelRows}` }] });
+          break;
+        case 'show':
+          panel.show();
+          break;
+        case 'hide':
+          panel.hide();
+          break;
+      }
+    });
+
+    /* ---- Eventos ---- */
+    for (const el of [html, tabs]) {
+      el.addEventListener('tab-change', (e) => write(`${el.id}: tab-change → ${e.detail.previous} ➜ ${e.detail.index}${e.detail.id ? ' (' + e.detail.id + ')' : ''}`));
+      el.addEventListener('visibility-change', (e) => write(`${el.id}: visibility-change → ${e.detail.visible}`));
+    }
+    panel.addEventListener('panel-show', () => write('panel: panel-show'));
+    panel.addEventListener('panel-hide', () => write('panel: panel-hide'));
+    panel.addEventListener('row-add', (e) => write(`panel: row-add #${e.detail.index}`));
+
+    write('Demo lista.');
   </script>
 </body>
 </html>
