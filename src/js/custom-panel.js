@@ -16,8 +16,9 @@
  *   panel.addRow({ elements: [{ type:'span', text:'Ana' }, { type:'span', text:'ana@mail' }] });
  *   panel.show(); / panel.hide();
  *
- * API:     addRow(config), deleteRow(index), clearRow(), setContent(html|Node),
- *          show(), hide(), rowCount, visible
+ * API:     addRow(config), addElement(rowIndex, spec), deleteRow(index),
+ *          clearRow(), setContent(html|Node), getRow(rowIndex), rowCount,
+ *          show(), hide(), visible
  * Eventos: row-add, row-delete, row-clear, panel-show, panel-hide
  *           (bubbles + composed salvo row-*)
  * Tema:    --panel-row-gap, --panel-row-padding, --panel-row-border,
@@ -162,6 +163,31 @@ class CustomPanel extends HTMLElement {
     this.#renderEmpty();
 
     return this;
+  }
+
+  /**
+   * Agrega un elemento al final de una fila ya creada.
+   * @param {number} rowIndex
+   * @param {object | Node} spec
+   * @returns {this}
+   */
+  addElement(rowIndex, spec = {}) {
+    const row = this.#rows[rowIndex];
+    if (!row) return this;
+
+    row.append(spec instanceof Node ? spec : this.#build(spec));
+
+    return this;
+  }
+
+  /**
+   * Devuelve el elemento de una fila existente (para ediciones avanzadas),
+   * o null si el indice no existe.
+   * @param {number} rowIndex
+   * @returns {HTMLElement | null}
+   */
+  getRow(rowIndex) {
+    return this.#rows[rowIndex] ?? null;
   }
 
   /** Muestra el panel con una animacion de entrada. */

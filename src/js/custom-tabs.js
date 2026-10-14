@@ -27,8 +27,9 @@
  * Atributos:   active (indice), visible ("false" oculta el componente)
  * Propiedades: active, activeId, visible, tabCount, tabs, panels
  * Metodos:     selectTab(key), addTab(opts), removeTab(key),
- *              addRow(key, config), deleteRow(key, index), clearRow(key),
- *              rowCount(key), show(), hide()
+ *              addRow(key, config), addElement(key, rowIndex, spec),
+ *              deleteRow(key, index), clearRow(key), rowCount(key),
+ *              getRow(key, rowIndex), show(), hide()
  * Eventos:     tab-change {index, previous, id}, visibility-change {visible}
  * Tema:        --tabs-accent, --tabs-text, --tabs-muted, --tabs-border,
  *              --tabs-duration
@@ -385,6 +386,42 @@ class CustomTabs extends HTMLElement {
     if (!panel) return 0;
     if (this.#isRichPanel(panel)) return panel.rowCount ?? 0;
     return (this.#fallbackRows.get(panel) ?? []).length;
+  }
+
+  /**
+   * Agrega un elemento al final de una fila de una pestaña.
+   * @param {number | string} key
+   * @param {number} rowIndex
+   * @param {object | Node} spec
+   */
+  addElement(key, rowIndex, spec) {
+    const panel = this.#panelOf(key);
+    if (!panel) return this.#warn(key);
+
+    if (this.#isRichPanel(panel) && typeof panel.addElement === 'function') {
+      panel.addElement(rowIndex, spec);
+      return this;
+    }
+
+    const row = (this.#fallbackRows.get(panel) ?? [])[rowIndex];
+    if (row) row.append(spec instanceof Node ? spec : this.#build(spec));
+
+    return this;
+  }
+
+  /**
+   * Devuelve el elemento de una fila (para ediciones avanzadas) o null.
+   * @param {number | string} key
+   * @param {number} rowIndex
+   * @returns {HTMLElement | null}
+   */
+  getRow(key, rowIndex) {
+    const panel = this.#panelOf(key);
+    if (!panel) return null;
+    if (this.#isRichPanel(panel) && typeof panel.getRow === 'function') {
+      return panel.getRow(rowIndex);
+    }
+    return (this.#fallbackRows.get(panel) ?? [])[rowIndex] ?? null;
   }
 
   show() { this.visible = true; }
